@@ -29,8 +29,9 @@ openssl_decrypt(base64_decode($data), 'AES-128-ECB', $key, $options = 0)
 - php中使用`\0`(`chr(0)`)填充，使用`echo/var_dump`无法显示填充的字符，但是其长度是在的  
 ![php_encrypt_zero_padding.png](doc/php_encrypt_zero_padding.png)
 - go中使用`\0`会显示   
-![golang_encrypt_zero_padding.png](doc/golang_encrypt_zero_padding.png)
-上面的情况就会导致一个问题相同的数据，相同的key使用`OPENSSL_ZERO_PADDING`加密后，php与go加密结果不一样，但是不影响解密。（不推荐使用此填充方式）
+![golang_encrypt_zero_padding.png](doc/golang_encrypt_zero_padding.png) 
+
+上面的情况就会导致一个问题：相同的数据，相同的key使用`OPENSSL_ZERO_PADDING`加密后，php与go加密结果不一样，但是不影响解密。（不推荐使用此填充方式）
 # 已经实现的加密解密方法
 - [x] AES-128-CBC
 - [x] AES-192-CBC
