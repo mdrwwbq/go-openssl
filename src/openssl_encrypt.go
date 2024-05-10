@@ -6,7 +6,6 @@ import (
 	"crypto/aes"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 )
@@ -37,7 +36,7 @@ func (s *OpensslEncrypt) Encrypt(data, method, key string, options int, iv ...st
 		newData = s.PKCS7Padding(newData, blockCipher.BlockSize())
 	case OpenSSLZeroPadding:
 		newData = s.PKCSZeroPadding(newData, blockCipher.BlockSize())
-	case OpenSSLNormalData:
+	case OpenSSLNormalData, OpenSSLNoPadding:
 		newData = s.PKCS7Padding(newData, blockCipher.BlockSize())
 	}
 	dst := make([]byte, len(newData))
@@ -60,6 +59,9 @@ func (s *OpensslEncrypt) Encrypt(data, method, key string, options int, iv ...st
 
 // Decrypt 解密
 func (s *OpensslEncrypt) Decrypt(data, method, key string, options int, iv ...string) (res string, err error) {
+	if data == "" {
+		return "", nil
+	}
 	res = ""
 	if !CheckCipherMethodIsExist(method) {
 		return "", errors.New("cipher method is not exist")
@@ -78,9 +80,8 @@ func (s *OpensslEncrypt) Decrypt(data, method, key string, options int, iv ...st
 	case OpenSSLCipherMethodAes128Cbc, OpenSSLCipherMethodAes192Cbc, OpenSSLCipherMethodAes256Cbc:
 		// CBC
 	}
-
 	switch options {
-	case OpenSSLRawData, OpenSSLNormalData:
+	case OpenSSLRawData, OpenSSLNormalData, OpenSSLNoPadding:
 		newData = s.PKCS7UnPadding(dst)
 	case OpenSSLZeroPadding:
 		newData = s.PKCSZeroUnPadding(dst)
@@ -136,7 +137,6 @@ func (s *OpensslEncrypt) PKCSZeroPadding(data []byte, blockSize int) []byte {
 	plaintext := string(data)
 	if padding != blockSize {
 		plaintext += string(bytes.Repeat([]byte{0}, padding))
-		fmt.Println(plaintext)
 		return []byte(plaintext)
 	} else {
 		return data
