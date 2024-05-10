@@ -6,6 +6,7 @@ import (
 	"crypto/aes"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -13,14 +14,22 @@ import (
 type Openssl struct {
 	ctx context.Context
 }
+type opensslArgs struct {
+	options   int
+	iv        string
+	tag       string // Unrealized
+	aad       string // Unrealized
+	tagLength int    // Unrealized
+}
 
 func NewOpenssl(ctx context.Context) *Openssl {
 	return &Openssl{ctx: ctx}
 }
 
 // Encrypt 加密
-func (s *Openssl) Encrypt(data, method, key string, options int, iv ...string) (res string, err error) {
+func (s *Openssl) Encrypt(data, method, key string, args ...interface{}) (res string, err error) {
 	res = ""
+	extParams := s.parseArgs(args...)
 	if !CheckCipherMethodIsExist(method) {
 		return "", errors.New("cipher method is not exist")
 	}
@@ -31,7 +40,7 @@ func (s *Openssl) Encrypt(data, method, key string, options int, iv ...string) (
 	}
 	newData := []byte(data)
 
-	switch options {
+	switch extParams.options {
 	case RawData:
 		newData = s.PKCS7Padding(newData, blockCipher.BlockSize())
 	case ZeroPadding:
@@ -48,7 +57,7 @@ func (s *Openssl) Encrypt(data, method, key string, options int, iv ...string) (
 	case CipherMethodAes128Cbc, CipherMethodAes192Cbc, CipherMethodAes256Cbc:
 		// CBC
 	}
-	switch options {
+	switch extParams.options {
 	case RawData, NoPadding, ZeroPadding:
 		res = string(dst)
 	default:
@@ -58,10 +67,11 @@ func (s *Openssl) Encrypt(data, method, key string, options int, iv ...string) (
 }
 
 // Decrypt 解密
-func (s *Openssl) Decrypt(data, method, key string, options int, iv ...string) (res string, err error) {
+func (s *Openssl) Decrypt(data, method, key string, args ...interface{}) (res string, err error) {
 	if data == "" {
 		return "", nil
 	}
+	extParams := s.parseArgs(args...)
 	res = ""
 	if !CheckCipherMethodIsExist(method) {
 		return "", errors.New("cipher method is not exist")
@@ -80,7 +90,7 @@ func (s *Openssl) Decrypt(data, method, key string, options int, iv ...string) (
 	case CipherMethodAes128Cbc, CipherMethodAes192Cbc, CipherMethodAes256Cbc:
 		// CBC
 	}
-	switch options {
+	switch extParams.options {
 	case RawData, NormalData, NoPadding:
 		newData = s.PKCS7UnPadding(dst)
 	case ZeroPadding:
@@ -88,6 +98,20 @@ func (s *Openssl) Decrypt(data, method, key string, options int, iv ...string) (
 	}
 	res = string(newData)
 	return res, nil
+}
+
+// parseArgs
+func (s *Openssl) parseArgs(args ...interface{}) (res *opensslArgs) {
+	res = &opensslArgs{}
+	argsLen := len(args)
+	if argsLen >= 1 {
+		res.options = parseInt(args[0])
+	}
+	if argsLen >= 2 {
+		res.iv = fmt.Sprintf("%v", args[1])
+	}
+	// ... other args Unrealized
+	return res
 }
 
 func (s *Openssl) getKeyLength(method string) int {
