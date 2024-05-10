@@ -11,7 +11,7 @@
 
 // See https://blog.csdn.net/dorlolo/article/details/122712966
 
-package internal
+package src
 
 import "crypto/cipher"
 
@@ -31,7 +31,7 @@ type ecbEncrypter ecb
 
 // NewECBEncrypter returns a BlockMode which encrypts in electronic code book
 // mode, using the given Block.
-func NewECBEncrypter(b cipher.Block) cipher.BlockMode {
+func newECBEncrypter(b cipher.Block) cipher.BlockMode {
 	return (*ecbEncrypter)(newECB(b))
 }
 
@@ -55,7 +55,7 @@ type ecbDecrypter ecb
 
 // NewECBDecrypter returns a BlockMode which decrypts in electronic code book
 // mode, using the given Block.
-func NewECBDecrypter(b cipher.Block) cipher.BlockMode {
+func newECBDecrypter(b cipher.Block) cipher.BlockMode {
 	return (*ecbDecrypter)(newECB(b))
 }
 

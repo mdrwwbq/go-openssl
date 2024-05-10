@@ -1,4 +1,4 @@
-package internal
+package src
 
 import (
 	"context"
@@ -13,7 +13,7 @@ var (
 
 func TestAes128EcbEncrypt(t *testing.T) {
 	encrypt := NewOpensslEncrypt(ctx)
-	if res, err := encrypt.encrypt("123456789", "aes-256-ecb", "1234567890123456", OpenSSLZeroPadding); err != nil {
+	if res, err := encrypt.Encrypt("123456789", "aes-256-ecb", "1234567890123456", OpenSSLZeroPadding); err != nil {
 		panic(err)
 	} else {
 		fmt.Println(res)
@@ -28,7 +28,7 @@ func TestAes128EcbDecrypt(t *testing.T) {
 		panic(err)
 	}
 	decrypt := NewOpensslEncrypt(ctx)
-	if s, err := decrypt.decrypt(string(decodeString), "aes-256-ecb", "1234567890123456", OpenSSLRawData); err != nil {
+	if s, err := decrypt.Decrypt(string(decodeString), "aes-256-ecb", "1234567890123456", OpenSSLRawData); err != nil {
 		panic(err)
 	} else {
 		fmt.Println(s)
@@ -42,7 +42,7 @@ func TestAes128EcbDecryptZeroPadding(t *testing.T) {
 		panic(err)
 	}
 	decrypt := NewOpensslEncrypt(ctx)
-	if s, err := decrypt.decrypt(string(decodeString), "aes-128-ecb", "1234567890123456", OpenSSLZeroPadding); err != nil {
+	if s, err := decrypt.Decrypt(string(decodeString), "aes-128-ecb", "1234567890123456", OpenSSLZeroPadding); err != nil {
 		panic(err)
 	} else {
 		fmt.Println(s)

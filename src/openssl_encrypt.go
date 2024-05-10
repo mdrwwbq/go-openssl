@@ -1,4 +1,4 @@
-package internal
+package src
 
 import (
 	"bytes"
@@ -19,8 +19,8 @@ func NewOpensslEncrypt(ctx context.Context) *OpensslEncrypt {
 	return &OpensslEncrypt{ctx: ctx}
 }
 
-// encrypt 加密
-func (s *OpensslEncrypt) encrypt(data, method, key string, options int, iv ...string) (res string, err error) {
+// Encrypt 加密
+func (s *OpensslEncrypt) Encrypt(data, method, key string, options int, iv ...string) (res string, err error) {
 	res = ""
 	if !CheckCipherMethodIsExist(method) {
 		return "", errors.New("cipher method is not exist")
@@ -44,7 +44,7 @@ func (s *OpensslEncrypt) encrypt(data, method, key string, options int, iv ...st
 	switch method {
 	case OpenSSLCipherMethodAes128Ecb, OpenSSLCipherMethodAes192Ecb, OpenSSLCipherMethodAes256Ecb:
 		// ECB
-		encrypter := NewECBEncrypter(blockCipher)
+		encrypter := newECBEncrypter(blockCipher)
 		encrypter.CryptBlocks(dst, newData)
 	case OpenSSLCipherMethodAes128Cbc, OpenSSLCipherMethodAes192Cbc, OpenSSLCipherMethodAes256Cbc:
 		// CBC
@@ -58,8 +58,8 @@ func (s *OpensslEncrypt) encrypt(data, method, key string, options int, iv ...st
 	return res, nil
 }
 
-// decrypt 解密
-func (s *OpensslEncrypt) decrypt(data, method, key string, options int, iv ...string) (res string, err error) {
+// Decrypt 解密
+func (s *OpensslEncrypt) Decrypt(data, method, key string, options int, iv ...string) (res string, err error) {
 	res = ""
 	if !CheckCipherMethodIsExist(method) {
 		return "", errors.New("cipher method is not exist")
@@ -73,7 +73,7 @@ func (s *OpensslEncrypt) decrypt(data, method, key string, options int, iv ...st
 	dst := make([]byte, len(newData))
 	switch method {
 	case OpenSSLCipherMethodAes128Ecb, OpenSSLCipherMethodAes192Ecb, OpenSSLCipherMethodAes256Ecb:
-		encrypter := NewECBDecrypter(blockCipher)
+		encrypter := newECBDecrypter(blockCipher)
 		encrypter.CryptBlocks(dst, newData)
 	case OpenSSLCipherMethodAes128Cbc, OpenSSLCipherMethodAes192Cbc, OpenSSLCipherMethodAes256Cbc:
 		// CBC
