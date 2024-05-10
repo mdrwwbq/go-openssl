@@ -11,7 +11,7 @@
 
 // See https://blog.csdn.net/dorlolo/article/details/122712966
 
-package main
+package openssl
 
 import "crypto/cipher"
 

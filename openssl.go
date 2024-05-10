@@ -1,4 +1,4 @@
-package main
+package openssl
 
 import (
 	"bytes"
@@ -32,24 +32,24 @@ func (s *Openssl) Encrypt(data, method, key string, options int, iv ...string) (
 	newData := []byte(data)
 
 	switch options {
-	case OpenSSLRawData:
+	case RawData:
 		newData = s.PKCS7Padding(newData, blockCipher.BlockSize())
-	case OpenSSLZeroPadding:
+	case ZeroPadding:
 		newData = s.PKCSZeroPadding(newData, blockCipher.BlockSize())
-	case OpenSSLNormalData, OpenSSLNoPadding:
+	case NormalData, NoPadding:
 		newData = s.PKCS7Padding(newData, blockCipher.BlockSize())
 	}
 	dst := make([]byte, len(newData))
 	switch method {
-	case OpenSSLCipherMethodAes128Ecb, OpenSSLCipherMethodAes192Ecb, OpenSSLCipherMethodAes256Ecb:
+	case CipherMethodAes128Ecb, CipherMethodAes192Ecb, CipherMethodAes256Ecb:
 		// ECB
 		encrypter := newECBEncrypter(blockCipher)
 		encrypter.CryptBlocks(dst, newData)
-	case OpenSSLCipherMethodAes128Cbc, OpenSSLCipherMethodAes192Cbc, OpenSSLCipherMethodAes256Cbc:
+	case CipherMethodAes128Cbc, CipherMethodAes192Cbc, CipherMethodAes256Cbc:
 		// CBC
 	}
 	switch options {
-	case OpenSSLRawData, OpenSSLNoPadding, OpenSSLZeroPadding:
+	case RawData, NoPadding, ZeroPadding:
 		res = string(dst)
 	default:
 		res = base64.StdEncoding.EncodeToString(dst)
@@ -74,16 +74,16 @@ func (s *Openssl) Decrypt(data, method, key string, options int, iv ...string) (
 	newData := []byte(data)
 	dst := make([]byte, len(newData))
 	switch method {
-	case OpenSSLCipherMethodAes128Ecb, OpenSSLCipherMethodAes192Ecb, OpenSSLCipherMethodAes256Ecb:
+	case CipherMethodAes128Ecb, CipherMethodAes192Ecb, CipherMethodAes256Ecb:
 		encrypter := newECBDecrypter(blockCipher)
 		encrypter.CryptBlocks(dst, newData)
-	case OpenSSLCipherMethodAes128Cbc, OpenSSLCipherMethodAes192Cbc, OpenSSLCipherMethodAes256Cbc:
+	case CipherMethodAes128Cbc, CipherMethodAes192Cbc, CipherMethodAes256Cbc:
 		// CBC
 	}
 	switch options {
-	case OpenSSLRawData, OpenSSLNormalData, OpenSSLNoPadding:
+	case RawData, NormalData, NoPadding:
 		newData = s.PKCS7UnPadding(dst)
-	case OpenSSLZeroPadding:
+	case ZeroPadding:
 		newData = s.PKCSZeroUnPadding(dst)
 	}
 	res = string(newData)
