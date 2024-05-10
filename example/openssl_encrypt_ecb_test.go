@@ -3,7 +3,7 @@ package example
 import (
 	"context"
 	"encoding/base64"
-	"github.com/mdrwwbq/go-openssl"
+	"github.com/mdrwwbq/openssl"
 	"testing"
 )
 
