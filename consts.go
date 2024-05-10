@@ -1,4 +1,4 @@
-package src
+package main
 
 var (
 	OpenSSLCipherMethodAes128Cbc = "aes-128-cbc"

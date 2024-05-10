@@ -11,7 +11,7 @@
 
 // See https://blog.csdn.net/dorlolo/article/details/122712966
 
-package src
+package main
 
 import "crypto/cipher"
 

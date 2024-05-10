@@ -1,4 +1,4 @@
-package src
+package main
 
 import (
 	"bytes"
@@ -10,16 +10,16 @@ import (
 	"strings"
 )
 
-type OpensslEncrypt struct {
+type Openssl struct {
 	ctx context.Context
 }
 
-func NewOpensslEncrypt(ctx context.Context) *OpensslEncrypt {
-	return &OpensslEncrypt{ctx: ctx}
+func NewOpenssl(ctx context.Context) *Openssl {
+	return &Openssl{ctx: ctx}
 }
 
 // Encrypt 加密
-func (s *OpensslEncrypt) Encrypt(data, method, key string, options int, iv ...string) (res string, err error) {
+func (s *Openssl) Encrypt(data, method, key string, options int, iv ...string) (res string, err error) {
 	res = ""
 	if !CheckCipherMethodIsExist(method) {
 		return "", errors.New("cipher method is not exist")
@@ -58,7 +58,7 @@ func (s *OpensslEncrypt) Encrypt(data, method, key string, options int, iv ...st
 }
 
 // Decrypt 解密
-func (s *OpensslEncrypt) Decrypt(data, method, key string, options int, iv ...string) (res string, err error) {
+func (s *Openssl) Decrypt(data, method, key string, options int, iv ...string) (res string, err error) {
 	if data == "" {
 		return "", nil
 	}
@@ -90,7 +90,7 @@ func (s *OpensslEncrypt) Decrypt(data, method, key string, options int, iv ...st
 	return res, nil
 }
 
-func (s *OpensslEncrypt) getKeyLength(method string) int {
+func (s *Openssl) getKeyLength(method string) int {
 	methodSlice := strings.Split(method, "-")
 	if len(methodSlice) != 3 {
 		return 0
@@ -103,7 +103,7 @@ func (s *OpensslEncrypt) getKeyLength(method string) int {
 	}
 }
 
-func (s *OpensslEncrypt) getKey(method, key string) string {
+func (s *Openssl) getKey(method, key string) string {
 	keyLength := s.getKeyLength(method)
 	curKeyLength := len(key)
 	if curKeyLength < keyLength {
@@ -115,7 +115,7 @@ func (s *OpensslEncrypt) getKey(method, key string) string {
 	}
 }
 
-func (s *OpensslEncrypt) PKCSZeroUnPadding(data []byte) []byte {
+func (s *Openssl) PKCSZeroUnPadding(data []byte) []byte {
 	for i := len(data) - 1; i >= 0; i-- {
 		if data[i] != 0 {
 			return data[:i+1]
@@ -125,14 +125,14 @@ func (s *OpensslEncrypt) PKCSZeroUnPadding(data []byte) []byte {
 }
 
 // PKCS5UnPadding 对数据进行 PKCS5 反填充
-func (s *OpensslEncrypt) PKCS5UnPadding(data []byte) []byte {
+func (s *Openssl) PKCS5UnPadding(data []byte) []byte {
 	length := len(data)
 	unpadding := int(data[length-1])
 	return data[:(length - unpadding)]
 }
 
 // PKCSZeroPadding 对数据进行 0 填充
-func (s *OpensslEncrypt) PKCSZeroPadding(data []byte, blockSize int) []byte {
+func (s *Openssl) PKCSZeroPadding(data []byte, blockSize int) []byte {
 	padding := blockSize - len(data)%blockSize
 	plaintext := string(data)
 	if padding != blockSize {
@@ -144,21 +144,21 @@ func (s *OpensslEncrypt) PKCSZeroPadding(data []byte, blockSize int) []byte {
 }
 
 // PKCS7UnPadding 对数据进行 PKCS7 反填充
-func (s *OpensslEncrypt) PKCS7UnPadding(data []byte) []byte {
+func (s *Openssl) PKCS7UnPadding(data []byte) []byte {
 	length := len(data)
 	unpadding := int(data[length-1])
 	return data[:(length - unpadding)]
 }
 
 // PKCS5Padding 对数据进行 PKCS5 填充
-func (s *OpensslEncrypt) PKCS5Padding(data []byte, blockSize int) []byte {
+func (s *Openssl) PKCS5Padding(data []byte, blockSize int) []byte {
 	padding := blockSize - len(data)%blockSize
 	pad := bytes.Repeat([]byte{byte(padding)}, padding)
 	return append(data, pad...)
 }
 
 // PKCS7Padding 对数据进行 PKCS7 填充
-func (s *OpensslEncrypt) PKCS7Padding(data []byte, blockSize int) []byte {
+func (s *Openssl) PKCS7Padding(data []byte, blockSize int) []byte {
 	padding := blockSize - len(data)%blockSize
 	pad := bytes.Repeat([]byte{byte(padding)}, padding)
 	return append(data, pad...)

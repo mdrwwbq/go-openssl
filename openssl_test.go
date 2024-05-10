@@ -1,4 +1,4 @@
-package src
+package main
 
 import (
 	"context"
@@ -12,7 +12,7 @@ var (
 )
 
 func TestAes128EcbEncrypt(t *testing.T) {
-	encrypt := NewOpensslEncrypt(ctx)
+	encrypt := NewOpenssl(ctx)
 	if res, err := encrypt.Encrypt("123456789", "aes-256-ecb", "1234567890123456", OpenSSLZeroPadding); err != nil {
 		panic(err)
 	} else {
@@ -27,7 +27,7 @@ func TestAes128EcbDecrypt(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	decrypt := NewOpensslEncrypt(ctx)
+	decrypt := NewOpenssl(ctx)
 	if s, err := decrypt.Decrypt(string(decodeString), "aes-256-ecb", "1234567890123456", OpenSSLRawData); err != nil {
 		panic(err)
 	} else {
@@ -41,7 +41,7 @@ func TestAes128EcbDecryptZeroPadding(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	decrypt := NewOpensslEncrypt(ctx)
+	decrypt := NewOpenssl(ctx)
 	if s, err := decrypt.Decrypt(string(decodeString), "aes-128-ecb", "1234567890123456", OpenSSLZeroPadding); err != nil {
 		panic(err)
 	} else {

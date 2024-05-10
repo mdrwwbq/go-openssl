@@ -3,7 +3,7 @@ package example
 import (
 	"context"
 	"encoding/base64"
-	"github.com/mdrwwbq/go-openssl/src"
+	"github.com/mdrwwbq/go-openssl"
 	"testing"
 )
 
@@ -24,12 +24,12 @@ func TestAesEcbEncryptNormal(t *testing.T) {
 		args args
 		want string
 	}{
-		{name: "AES-128-ECB options=0", args: args{data: "222", method: "aes-128-ecb", options: src.OpenSSLNormalData}, want: "Q0vftwpmFHJfzUQbjV18DQ=="},
-		{name: "AES-192-ECB options=0", args: args{data: "222", method: "aes-192-ecb", options: src.OpenSSLNormalData}, want: "3oT4CAAYlULx/rA6I2CR9A=="},
-		{name: "AES-256-ECB options=0", args: args{data: "222", method: "aes-256-ecb", options: src.OpenSSLNormalData}, want: "/cDWbMQMnTPhvlcLwf/TBQ=="},
-		{name: "AES-128-ECB options=0 key length appends null", args: args{data: "222", method: "aes-128-ecb", options: src.OpenSSLNormalData}, want: "ESxnVJjbMJhD2I6MW4KtAg=="},
+		{name: "AES-128-ECB options=0", args: args{data: "222", method: "aes-128-ecb", options: main.OpenSSLNormalData}, want: "Q0vftwpmFHJfzUQbjV18DQ=="},
+		{name: "AES-192-ECB options=0", args: args{data: "222", method: "aes-192-ecb", options: main.OpenSSLNormalData}, want: "3oT4CAAYlULx/rA6I2CR9A=="},
+		{name: "AES-256-ECB options=0", args: args{data: "222", method: "aes-256-ecb", options: main.OpenSSLNormalData}, want: "/cDWbMQMnTPhvlcLwf/TBQ=="},
+		{name: "AES-128-ECB options=0 key length appends null", args: args{data: "222", method: "aes-128-ecb", options: main.OpenSSLNormalData}, want: "ESxnVJjbMJhD2I6MW4KtAg=="},
 	}
-	encrypt := src.NewOpensslEncrypt(ctx)
+	encrypt := main.NewOpenssl(ctx)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got, err := encrypt.Encrypt(tt.args.data, tt.args.method, key, tt.args.options, iv); got != tt.want || err != nil {
@@ -53,11 +53,11 @@ func TestAesEcbEncryptRawData(t *testing.T) {
 		args args
 		want string
 	}{
-		{name: "AES-128-ECB options=1", args: args{data: "222", method: "aes-128-ecb", options: src.OpenSSLRawData}, want: "Q0vftwpmFHJfzUQbjV18DQ=="},
-		{name: "AES-192-ECB options=1", args: args{data: "222", method: "aes-192-ecb", options: src.OpenSSLRawData}, want: "3oT4CAAYlULx/rA6I2CR9A=="},
-		{name: "AES-256-ECB options=1", args: args{data: "222", method: "aes-256-ecb", options: src.OpenSSLRawData}, want: "/cDWbMQMnTPhvlcLwf/TBQ=="},
+		{name: "AES-128-ECB options=1", args: args{data: "222", method: "aes-128-ecb", options: main.OpenSSLRawData}, want: "Q0vftwpmFHJfzUQbjV18DQ=="},
+		{name: "AES-192-ECB options=1", args: args{data: "222", method: "aes-192-ecb", options: main.OpenSSLRawData}, want: "3oT4CAAYlULx/rA6I2CR9A=="},
+		{name: "AES-256-ECB options=1", args: args{data: "222", method: "aes-256-ecb", options: main.OpenSSLRawData}, want: "/cDWbMQMnTPhvlcLwf/TBQ=="},
 	}
-	encrypt := src.NewOpensslEncrypt(ctx)
+	encrypt := main.NewOpenssl(ctx)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got, err := encrypt.Encrypt(tt.args.data, tt.args.method, key, tt.args.options, iv); err != nil {
@@ -84,14 +84,14 @@ func TestAesEcbEncryptZeroPadding(t *testing.T) {
 		args args
 		want string
 	}{
-		{name: "AES-128-ECB options=2", args: args{data: "222", method: "aes-128-ecb", options: src.OpenSSLZeroPadding}, want: "/NCcLXFd+v8a3SwFF79/WA=="},
-		{name: "AES-192-ECB options=2", args: args{data: "222", method: "aes-192-ecb", options: src.OpenSSLZeroPadding}, want: "uCf166kiJbyGd/iNaPI0mA=="},
-		{name: "AES-256-ECB options=2", args: args{data: "222", method: "aes-256-ecb", options: src.OpenSSLZeroPadding}, want: "pMNT3lHKy8FvSOwhPOO/Sg=="},
-		{name: "AES-128-ECB options=3", args: args{data: "222", method: "aes-128-ecb", options: src.OpenSSLNoPadding}, want: "Q0vftwpmFHJfzUQbjV18DQ=="},
-		{name: "AES-192-ECB options=3", args: args{data: "222", method: "aes-192-ecb", options: src.OpenSSLNoPadding}, want: "3oT4CAAYlULx/rA6I2CR9A=="},
-		{name: "AES-256-ECB options=3", args: args{data: "222", method: "aes-256-ecb", options: src.OpenSSLNoPadding}, want: "/cDWbMQMnTPhvlcLwf/TBQ=="},
+		{name: "AES-128-ECB options=2", args: args{data: "222", method: "aes-128-ecb", options: main.OpenSSLZeroPadding}, want: "/NCcLXFd+v8a3SwFF79/WA=="},
+		{name: "AES-192-ECB options=2", args: args{data: "222", method: "aes-192-ecb", options: main.OpenSSLZeroPadding}, want: "uCf166kiJbyGd/iNaPI0mA=="},
+		{name: "AES-256-ECB options=2", args: args{data: "222", method: "aes-256-ecb", options: main.OpenSSLZeroPadding}, want: "pMNT3lHKy8FvSOwhPOO/Sg=="},
+		{name: "AES-128-ECB options=3", args: args{data: "222", method: "aes-128-ecb", options: main.OpenSSLNoPadding}, want: "Q0vftwpmFHJfzUQbjV18DQ=="},
+		{name: "AES-192-ECB options=3", args: args{data: "222", method: "aes-192-ecb", options: main.OpenSSLNoPadding}, want: "3oT4CAAYlULx/rA6I2CR9A=="},
+		{name: "AES-256-ECB options=3", args: args{data: "222", method: "aes-256-ecb", options: main.OpenSSLNoPadding}, want: "/cDWbMQMnTPhvlcLwf/TBQ=="},
 	}
-	encrypt := src.NewOpensslEncrypt(ctx)
+	encrypt := main.NewOpenssl(ctx)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got, err := encrypt.Encrypt(tt.args.data, tt.args.method, key, tt.args.options, iv); err != nil {
@@ -106,9 +106,9 @@ func TestAesEcbEncryptZeroPadding(t *testing.T) {
 	}
 }
 func TestAesEcbEncryptKeyAppendNull(t *testing.T) {
-	encrypt := src.NewOpensslEncrypt(ctx)
+	encrypt := main.NewOpenssl(ctx)
 	want := `ESxnVJjbMJhD2I6MW4KtAg==`
-	if got, err := encrypt.Encrypt("222", "aes-128-ecb", "123", src.OpenSSLNormalData, iv); err != nil {
+	if got, err := encrypt.Encrypt("222", "aes-128-ecb", "123", main.OpenSSLNormalData, iv); err != nil {
 		t.Errorf("Encrypt() error = %v", err)
 	} else {
 		if got != want {
