@@ -20,7 +20,8 @@ func NewOpensslEncrypt(ctx context.Context) *OpensslEncrypt {
 }
 
 // encrypt 加密
-func (s *OpensslEncrypt) encrypt(data, method, key string, options int, iv ...string) (string, error) {
+func (s *OpensslEncrypt) encrypt(data, method, key string, options int, iv ...string) (res string, err error) {
+	res = ""
 	if !CheckCipherMethodIsExist(method) {
 		return "", errors.New("cipher method is not exist")
 	}
@@ -32,27 +33,62 @@ func (s *OpensslEncrypt) encrypt(data, method, key string, options int, iv ...st
 	newData := []byte(data)
 
 	switch options {
-	case OpenSSLRawData, OpenSSLNoPadding:
+	case OpenSSLRawData:
 		newData = s.PKCS7Padding(newData, blockCipher.BlockSize())
 	case OpenSSLZeroPadding:
 		newData = s.PKCSZeroPadding(newData, blockCipher.BlockSize())
+	case OpenSSLNormalData:
+		newData = s.PKCS7Padding(newData, blockCipher.BlockSize())
 	}
-
+	dst := make([]byte, len(newData))
 	switch method {
 	case OpenSSLCipherMethodAes128Ecb, OpenSSLCipherMethodAes192Ecb, OpenSSLCipherMethodAes256Ecb:
 		// ECB
 		encrypter := NewECBEncrypter(blockCipher)
-		dst := make([]byte, len(newData))
 		encrypter.CryptBlocks(dst, newData)
-
-		fmt.Println(string(dst))
-		fmt.Println(base64.StdEncoding.EncodeToString(dst))
-		// NewECBEncrypter()
 	case OpenSSLCipherMethodAes128Cbc, OpenSSLCipherMethodAes192Cbc, OpenSSLCipherMethodAes256Cbc:
 		// CBC
 	}
-	return "", nil
+	switch options {
+	case OpenSSLRawData, OpenSSLNoPadding, OpenSSLZeroPadding:
+		res = string(dst)
+	default:
+		res = base64.StdEncoding.EncodeToString(dst)
+	}
+	return res, nil
 }
+
+// decrypt 解密
+func (s *OpensslEncrypt) decrypt(data, method, key string, options int, iv ...string) (res string, err error) {
+	res = ""
+	if !CheckCipherMethodIsExist(method) {
+		return "", errors.New("cipher method is not exist")
+	}
+	newKey := s.getKey(method, key)
+	blockCipher, err := aes.NewCipher([]byte(newKey))
+	if err != nil {
+		return "", err
+	}
+	newData := []byte(data)
+	dst := make([]byte, len(newData))
+	switch method {
+	case OpenSSLCipherMethodAes128Ecb, OpenSSLCipherMethodAes192Ecb, OpenSSLCipherMethodAes256Ecb:
+		encrypter := NewECBDecrypter(blockCipher)
+		encrypter.CryptBlocks(dst, newData)
+	case OpenSSLCipherMethodAes128Cbc, OpenSSLCipherMethodAes192Cbc, OpenSSLCipherMethodAes256Cbc:
+		// CBC
+	}
+
+	switch options {
+	case OpenSSLRawData, OpenSSLNormalData:
+		newData = s.PKCS7UnPadding(dst)
+	case OpenSSLZeroPadding:
+		newData = s.PKCSZeroUnPadding(dst)
+	}
+	res = string(newData)
+	return res, nil
+}
+
 func (s *OpensslEncrypt) getKeyLength(method string) int {
 	methodSlice := strings.Split(method, "-")
 	if len(methodSlice) != 3 {
@@ -79,6 +115,11 @@ func (s *OpensslEncrypt) getKey(method, key string) string {
 }
 
 func (s *OpensslEncrypt) PKCSZeroUnPadding(data []byte) []byte {
+	for i := len(data) - 1; i >= 0; i-- {
+		if data[i] != 0 {
+			return data[:i+1]
+		}
+	}
 	return []byte{}
 }
 
@@ -92,8 +133,11 @@ func (s *OpensslEncrypt) PKCS5UnPadding(data []byte) []byte {
 // PKCSZeroPadding 对数据进行 0 填充
 func (s *OpensslEncrypt) PKCSZeroPadding(data []byte, blockSize int) []byte {
 	padding := blockSize - len(data)%blockSize
+	plaintext := string(data)
 	if padding != blockSize {
-		return append(data, bytes.Repeat([]byte{0}, padding)...)
+		plaintext += string(bytes.Repeat([]byte{0}, padding))
+		fmt.Println(plaintext)
+		return []byte(plaintext)
 	} else {
 		return data
 	}

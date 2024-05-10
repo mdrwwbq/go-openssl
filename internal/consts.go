@@ -17,6 +17,7 @@ var (
 		OpenSSLCipherMethodAes256Ecb: "AES-256-ECB",
 	}
 
+	OpenSSLNormalData  = 0 // 默认值就是PHP中options=0
 	OpenSSLRawData     = 1 // php 的 OPENSSL_RAW_DATA （会用PKCS#7进行补位）
 	OpenSSLZeroPadding = 2 // php 的 OPENSSL_ZERO_PADDING
 	OpenSSLNoPadding   = 3 // php 的 OPENSSL_NO_PADDING
