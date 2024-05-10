@@ -2,7 +2,7 @@
 go 实现php版本的openssl加密&amp;解密
 
 # 安装
-`go get github.com/mdrwwbq/go-openssl@latest`
+`go get github.com/mdrwwbq/openssl@latest`
 # 使用
 
 # openssl_encrypt
