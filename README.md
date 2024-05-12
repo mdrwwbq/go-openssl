@@ -37,9 +37,9 @@ openssl_decrypt(base64_decode($data), 'AES-128-ECB', $key, $options = 0)
 - OPENSSL_NO_PADDING 需要自己实现数据的填充来满足key的16、24、32位倍数
 
 # 已经实现的加密解密方法
-- [ ] AES-128-CBC
-- [ ] AES-192-CBC
-- [ ] AES-256-CBC
+- [x] AES-128-CBC
+- [x] AES-192-CBC
+- [x] AES-256-CBC
 - [x] AES-128-ECB
 - [x] AES-192-ECB
 - [x] AES-256-ECB
