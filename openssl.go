@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"context"
 	"crypto/aes"
+	"crypto/cipher"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -13,25 +15,33 @@ import (
 type Openssl struct {
 	ctx context.Context
 }
+type opensslArgs struct {
+	options   int
+	iv        string
+	tag       string // Unrealized
+	aad       string // Unrealized
+	tagLength int    // Unrealized
+}
 
 func NewOpenssl(ctx context.Context) *Openssl {
 	return &Openssl{ctx: ctx}
 }
 
 // Encrypt 加密
-func (s *Openssl) Encrypt(data, method, key string, options int, iv ...string) (res string, err error) {
+func (s *Openssl) Encrypt(data, method, key string, args ...interface{}) (res string, err error) {
 	res = ""
+	extParams := s.parseArgs(args...)
 	if !CheckCipherMethodIsExist(method) {
 		return "", errors.New("cipher method is not exist")
 	}
-	newKey := s.getKey(method, key)
-	blockCipher, err := aes.NewCipher([]byte(newKey))
+	newIv := s.getIv(extParams.iv)
+	blockCipher, err := aes.NewCipher(s.getKey(method, key))
 	if err != nil {
 		return "", err
 	}
 	newData := []byte(data)
 
-	switch options {
+	switch extParams.options {
 	case RawData:
 		newData = s.PKCS7Padding(newData, blockCipher.BlockSize())
 	case ZeroPadding:
@@ -43,12 +53,14 @@ func (s *Openssl) Encrypt(data, method, key string, options int, iv ...string) (
 	switch method {
 	case CipherMethodAes128Ecb, CipherMethodAes192Ecb, CipherMethodAes256Ecb:
 		// ECB
-		encrypter := newECBEncrypter(blockCipher)
-		encrypter.CryptBlocks(dst, newData)
+		encrypt := newECBEncrypter(blockCipher)
+		encrypt.CryptBlocks(dst, newData)
 	case CipherMethodAes128Cbc, CipherMethodAes192Cbc, CipherMethodAes256Cbc:
 		// CBC
+		encrypt := cipher.NewCBCEncrypter(blockCipher, newIv)
+		encrypt.CryptBlocks(dst, newData)
 	}
-	switch options {
+	switch extParams.options {
 	case RawData, NoPadding, ZeroPadding:
 		res = string(dst)
 	default:
@@ -58,29 +70,33 @@ func (s *Openssl) Encrypt(data, method, key string, options int, iv ...string) (
 }
 
 // Decrypt 解密
-func (s *Openssl) Decrypt(data, method, key string, options int, iv ...string) (res string, err error) {
+func (s *Openssl) Decrypt(data, method, key string, args ...interface{}) (res string, err error) {
 	if data == "" {
 		return "", nil
 	}
+	extParams := s.parseArgs(args...)
 	res = ""
 	if !CheckCipherMethodIsExist(method) {
 		return "", errors.New("cipher method is not exist")
 	}
-	newKey := s.getKey(method, key)
-	blockCipher, err := aes.NewCipher([]byte(newKey))
+	blockCipher, err := aes.NewCipher(s.getKey(method, key))
 	if err != nil {
 		return "", err
 	}
 	newData := []byte(data)
+	newIv := s.getIv(extParams.iv)
 	dst := make([]byte, len(newData))
 	switch method {
 	case CipherMethodAes128Ecb, CipherMethodAes192Ecb, CipherMethodAes256Ecb:
-		encrypter := newECBDecrypter(blockCipher)
-		encrypter.CryptBlocks(dst, newData)
+		decrypt := newECBDecrypter(blockCipher)
+		decrypt.CryptBlocks(dst, newData)
 	case CipherMethodAes128Cbc, CipherMethodAes192Cbc, CipherMethodAes256Cbc:
 		// CBC
+		decrypt := cipher.NewCBCDecrypter(blockCipher, newIv)
+		decrypt.CryptBlocks(dst, newData)
+
 	}
-	switch options {
+	switch extParams.options {
 	case RawData, NormalData, NoPadding:
 		newData = s.PKCS7UnPadding(dst)
 	case ZeroPadding:
@@ -88,6 +104,20 @@ func (s *Openssl) Decrypt(data, method, key string, options int, iv ...string) (
 	}
 	res = string(newData)
 	return res, nil
+}
+
+// parseArgs
+func (s *Openssl) parseArgs(args ...interface{}) (res *opensslArgs) {
+	res = &opensslArgs{}
+	argsLen := len(args)
+	if argsLen >= 1 {
+		res.options = parseInt(args[0])
+	}
+	if argsLen >= 2 {
+		res.iv = fmt.Sprintf("%v", args[1])
+	}
+	// ... other args Unrealized
+	return res
 }
 
 func (s *Openssl) getKeyLength(method string) int {
@@ -103,16 +133,31 @@ func (s *Openssl) getKeyLength(method string) int {
 	}
 }
 
-func (s *Openssl) getKey(method, key string) string {
+// getKey 根据aes.BlockSize获得新的key
+// 如果key长度不够，将进行追加\x00 -> \0 -> chr(0)
+func (s *Openssl) getKey(method, key string) []byte {
 	keyLength := s.getKeyLength(method)
 	curKeyLength := len(key)
+	res := key
 	if curKeyLength < keyLength {
-		return key + strings.Repeat("\x00", keyLength-curKeyLength)
+		res += strings.Repeat("\x00", keyLength-curKeyLength)
 	} else if curKeyLength > keyLength {
-		return key[:keyLength]
-	} else {
-		return key
+		res = key[:keyLength]
 	}
+	return []byte(res)
+}
+
+// getIv 根据aes.BlockSize获得新的Iv
+// 如果iv长度不够，将进行追加\x00 -> \0 -> chr(0)
+func (s *Openssl) getIv(iv string) []byte {
+	curIvLength := len(iv)
+	res := iv
+	if curIvLength < aes.BlockSize {
+		res += strings.Repeat("\x00", aes.BlockSize-curIvLength)
+	} else if curIvLength > aes.BlockSize {
+		res = iv[:aes.BlockSize]
+	}
+	return []byte(res)
 }
 
 func (s *Openssl) PKCSZeroUnPadding(data []byte) []byte {

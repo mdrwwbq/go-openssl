@@ -4,10 +4,18 @@ go 实现php版本的openssl加密&amp;解密
 # 安装
 `go get github.com/mdrwwbq/openssl@latest`
 # 使用
-
+```go
+ctx := context.TODO()
+encrypt := openssl.NewOpenssl(ctx)
+if res, err := encrypt.Encrypt("222", "aes-128-ecb", "1234567890123456", openssl.NormalData, ""); err != nil {
+    panic(err)
+} else {
+    fmt.Println(res)
+}
+```
 # openssl_encrypt
 `openssl_encrypt($data, 'AES-128-ECB', $key, $options = 0, $iv = '')`
-- 128 在PHP中如果key的长度小于16，则php会自动补全(`\0`)；大于16位的key，则php会自动截取前16位 
+- 128 在PHP中如果key的长度小于16，则php会自动补全(`\x00`)；大于16位的key，则php会自动截取前16位 
 - 192 同上key长度为：24
 - 256 同上key长度为：32
 ### AES-128-ECB、AES-192-ECB、AES-256-ECB 
@@ -29,9 +37,9 @@ openssl_decrypt(base64_decode($data), 'AES-128-ECB', $key, $options = 0)
 - OPENSSL_NO_PADDING 需要自己实现数据的填充来满足key的16、24、32位倍数
 
 # 已经实现的加密解密方法
-- [ ] AES-128-CBC
-- [ ] AES-192-CBC
-- [ ] AES-256-CBC
+- [x] AES-128-CBC
+- [x] AES-192-CBC
+- [x] AES-256-CBC
 - [x] AES-128-ECB
 - [x] AES-192-ECB
 - [x] AES-256-ECB
