@@ -48,3 +48,27 @@ func TestAes128EcbDecryptZeroPadding(t *testing.T) {
 		fmt.Println(s)
 	}
 }
+
+func TestAes128CbcEncrypt(t *testing.T) {
+	encrypt := NewOpenssl(ctx)
+	iv := "0123456789abcdef"
+	if s, err := encrypt.Encrypt("aa", "aes-128-cbc", "0123456789abcdef", RawData, iv); err != nil {
+		panic(err)
+	} else {
+		fmt.Println(s)
+	}
+}
+
+func TestAes128CbcDecrypt(t *testing.T) {
+	decrypt := NewOpenssl(ctx)
+	iv := "0123456789abcdef"
+	newData, err := base64.StdEncoding.DecodeString(`ERw0bfKnJvwP5jQu+YWxkw==`)
+	if err != nil {
+		panic(err)
+	}
+	if s, err := decrypt.Decrypt(string(newData), "aes-128-cbc", "0123456789abcdef", RawData, iv); err != nil {
+		panic(err)
+	} else {
+		fmt.Println(s)
+	}
+}
